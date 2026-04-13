@@ -6,6 +6,8 @@ Doom running in your terminal. No GPU required.
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![ViZDoom](https://img.shields.io/badge/ViZDoom-powered-green)
 
+![In-Game Screenshot](.github/in_game_screenshot.png)
+
 ## What is this?
 
 A lightweight Doom experience that renders the game as ASCII art in real-time. Uses ViZDoom as the engine but displays everything in your terminal.

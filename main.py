@@ -13,7 +13,7 @@ Options:
     --renderer  {graphics,ascii}                   Renderer (default: graphics)
     --episodes  N     Stop after N episodes (0 = infinite)
     --tics      N     ViZDoom tics per step (default: 2)
-    --fps       N     ASCII target FPS (default: 15)
+    --fps       N     Target FPS for both modes (default: 35)
     --scale     N     Graphics window scale (default: 3 → 960×720)
     --width     N     ASCII column override
     --height    N     ASCII row override
@@ -104,7 +104,7 @@ def parse_args():
     p.add_argument("--renderer", default=None, choices=["graphics", "ascii"])
     p.add_argument("--episodes", type=int, default=0)
     p.add_argument("--tics",     type=int, default=2)
-    p.add_argument("--fps",      type=int, default=30)
+    p.add_argument("--fps",      type=int, default=35)
     p.add_argument("--scale",    type=int, default=3)
     p.add_argument("--width",    type=int, default=None)
     p.add_argument("--height",   type=int, default=None)
@@ -154,9 +154,9 @@ def main():
     renderer.show_banner("human")
     time.sleep(1.5)
 
-    # Frames of no new kills required to declare a level cleared.
-    # At default fps=30, 300 steps ≈ 10 seconds with no enemy activity.
-    _CLEAR_FRAMES = 300
+    # Seconds of no new kills required to declare a level cleared.
+    # Scales with FPS so timing is consistent across modes.
+    _CLEAR_SECONDS = 10.0
 
     frame_duration   = 1.0 / max(1, args.fps)
     episode_num      = 0
@@ -215,7 +215,7 @@ def main():
                             no_kills_change_t = 0
                         elif kills > 0:
                             no_kills_change_t += 1
-                            if no_kills_change_t >= _CLEAR_FRAMES:
+                            if no_kills_change_t >= int(_CLEAR_SECONDS * args.fps):
                                 all_cleared = True
                                 break
 
@@ -249,11 +249,11 @@ def main():
                     sys.stdout.write(f"\n[episode {episode_num}] error: {exc}\n")
                     break
 
-                if args.renderer == "ascii":
-                    elapsed = time.monotonic() - t0
-                    wait    = frame_duration - elapsed
-                    if wait > 0:
-                        time.sleep(wait)
+                # Frame rate control for consistent timing in both modes
+                elapsed = time.monotonic() - t0
+                wait = frame_duration - elapsed
+                if wait > 0:
+                    time.sleep(wait)
 
             if restarting:
                 episode_num -= 1   # don't count the restarted episode
